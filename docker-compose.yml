@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: docker/php/Dockerfile
+    ports:
+      - "8098:8000"
+    volumes:
+      - ./web:/var/www/html
+      - ../tvdb:/var/www/html/db
+    restart: always
