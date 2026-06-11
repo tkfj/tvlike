@@ -54,6 +54,7 @@ function load_ml_random(?string $interaction) {
     if(is_null($interaction)) {
         $with_ = "WITH hoge AS (
             SELECT * FROM tvml
+            WHERE src = 0
             ORDER BY RANDOM() DESC
             LIMIT 1
         )";
@@ -62,7 +63,8 @@ function load_ml_random(?string $interaction) {
     else {
         $with_ = "WITH hoge AS (
             SELECT * FROM tvml
-            WHERE pred_label=?
+            WHERE src = 0
+            AND pred_label=?
             AND interaction IS NULL
             --ORDER BY pred_proba ASC
             --LIMIT 100
