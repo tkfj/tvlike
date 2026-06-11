@@ -216,10 +216,10 @@ if($is_cold_start) {
 else {
     $rnd = rand(1,100);
     if ($rnd <= 33) {
-        $pg = load_ml_random("interested");
+        $pg = load_ml_random("p");
     }
     elseif ($rnd <= 50) {
-        $pg = load_ml_random("not_interested");
+        $pg = load_ml_random("n");
     }
     else {
         $pg = load_ml_random(null);
@@ -232,7 +232,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pgm_uid = $_POST['pgm_uid'];
     $status = $_POST['status']; // 例: "interested", "not_interested", "skip"
     set_interaction($status, $pgm_uid);
-    $status_label = isset($_POST['status']) ? $_POST['status'] : '';
+    if ($status == 'p') {
+        $status_label = '興味あり';
+    } 
+    elseif ($status == 'n') {
+        $status_label = '興味なし';
+    } 
+    elseif ($status == '_') {
+        $status_label = '保留';
+    }
+    else {
+        $status_label = null;
+    }
     if ($status_label) {
         $message = "PID: " . htmlspecialchars($pgm_uid) . " を「" . htmlspecialchars($status_label) . "」として処理しました";
     }
@@ -289,9 +300,9 @@ $station = $pg['pgm_station_name']=='Unknown' ? $pg['station_name'] : str_replac
             <input type="hidden" name="pgm_uid" value="<?php echo $pg['pgm_uid']; ?>">
             <input type="hidden" name="status" id="statusInput" value="">
             <div class="actions">
-                <button type="button" class="btn-interest" onclick="submitForm('interested')">興味あり (1)</button>
-                <button type="button" class="btn-ignore" onclick="submitForm('not_interested')">興味なし (2)</button>
-                <button type="button" class="btn-skip" onclick="submitForm('skip')">保留 (3)</button>
+                <button type="button" class="btn-interest" onclick="submitForm('p')">興味あり (1)</button>
+                <button type="button" class="btn-ignore" onclick="submitForm('n')">興味なし (2)</button>
+                <button type="button" class="btn-skip" onclick="submitForm('_')">保留 (3)</button>
             </div>
         </form>
     </div>
@@ -308,9 +319,9 @@ $station = $pg['pgm_station_name']=='Unknown' ? $pg['station_name'] : str_replac
 
         // キーボードショートカットの実装
         window.addEventListener('keydown', (e) => {
-            if (e.key === '1') submitForm('interested');
-            if (e.key === '2') submitForm('not_interested');
-            if (e.key === '3') submitForm('skip');
+            if (e.key === '1') submitForm('p');
+            if (e.key === '2') submitForm('n');
+            if (e.key === '3') submitForm('_');
         });
     </script>
 </body>
