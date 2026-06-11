@@ -218,10 +218,10 @@ if($is_cold_start) {
 else {
     $rnd = rand(1,100);
     if ($rnd <= 33) {
-        $pg = load_ml_random("p");
+        $pg = load_ml_random("n");
     }
     elseif ($rnd <= 50) {
-        $pg = load_ml_random("n");
+        $pg = load_ml_random("p");
     }
     else {
         $pg = load_ml_random(null);
