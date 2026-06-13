@@ -8,6 +8,10 @@ $db_path_ml = __DIR__ . '/db/tvml.db';
 # 常にプログラムから候補を返す
 $is_cold_start = FALSE;
 
+$currenttime = new DateTimeImmutable('now', new DateTimeZone('Asia/Tokyo'));
+$pasttime = $currenttime->modify('-7 days');
+$pastdates = $pasttime->format('Ymd');
+
 try {
     $db_out = new PDO("sqlite:$db_out_path");
     $db_out->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -44,6 +48,7 @@ try {
 }
 function load_ml_random(?string $interaction) {
     global $db_path_ml;
+    global $pastdates;
     try {
         $db_ml = new PDO("sqlite:$db_path_ml");
         $db_ml->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -52,28 +57,35 @@ function load_ml_random(?string $interaction) {
         die("DB(ml)接続エラー: " . $e->getMessage());
     }
     if(is_null($interaction)) {
-        $with_ = "WITH tvml1 AS (
-            SELECT * FROM tvml
+        $with_ = ", tvml1 AS (
+            SELECT * FROM latest_tvml
             WHERE src = 0
             AND pred_label IS NOT NULL
             ORDER BY RANDOM() DESC
             LIMIT 1
         )";
-        $params_=[];
+        $params_=[$pastdates];
     }
     else {
-        $with_ = "WITH tvml1 AS (
-            SELECT * FROM tvml
+        $with_ = ", tvml1 AS (
+            SELECT * FROM latest_tvml
             WHERE src = 0
             AND pred_label=?
             AND interaction IS NULL
-            --ORDER BY pred_proba ASC
-            --LIMIT 100
         )";
-        $params_=[$interaction];
+        $params_=[$pastdates, $interaction];
     }
     try {
-        $stmt = $db_ml->prepare("{$with_}
+        $stmt = $db_ml->prepare("
+            with latest_tvml as (
+                select
+                *,
+                dense_rank() over (order by asof desc) as rk
+                from tvml
+                where src=0
+                and bsdate>=?
+            )
+            {$with_}
             SELECT *
             FROM tvml1
             ORDER BY RANDOM() DESC
@@ -91,6 +103,7 @@ function load_ml_random(?string $interaction) {
 }
 function load_pgm_random() {
     global $db_in;
+    global $pastdates;
     try {
         $stmt = $db_in->query("
             with latest_programs as (
@@ -104,6 +117,7 @@ function load_pgm_random() {
             from latest_programs
             where
             rk=1
+            and bsdate>='{$pastdates}'
             order by random() desc
             limit 1
             ;
