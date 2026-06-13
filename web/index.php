@@ -52,16 +52,17 @@ function load_ml_random(?string $interaction) {
         die("DB(ml)接続エラー: " . $e->getMessage());
     }
     if(is_null($interaction)) {
-        $with_ = "WITH hoge AS (
+        $with_ = "WITH tvml1 AS (
             SELECT * FROM tvml
             WHERE src = 0
+            AND pred_label IS NOT NULL
             ORDER BY RANDOM() DESC
             LIMIT 1
         )";
         $params_=[];
     }
     else {
-        $with_ = "WITH hoge AS (
+        $with_ = "WITH tvml1 AS (
             SELECT * FROM tvml
             WHERE src = 0
             AND pred_label=?
@@ -74,7 +75,7 @@ function load_ml_random(?string $interaction) {
     try {
         $stmt = $db_ml->prepare("{$with_}
             SELECT *
-            FROM hoge
+            FROM tvml1
             ORDER BY RANDOM() DESC
             LIMIT 1
             ;
@@ -251,6 +252,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 $dts = DateTime::createFromFormat('YmdHi', $pg['pg_start']);
+$dts_s = $dts->format('Y-m-d H:i');
 $dte = DateTime::createFromFormat('YmdHi', $pg['pg_end']);
 $dti = $dte->diff($dts);
 $dti_m = ($dti->days * 24 * 60) + ($dti->h * 60) + $dti->i;
@@ -294,7 +296,7 @@ $station = $pg['pgm_station_name']=='Unknown' ? $pg['station_name'] : str_replac
     <?php endif; ?>
 
     <div class="card">
-        <div class="meta"><?php echo $station; ?> | <?php echo $pg['pg_start']; ?> | <?php echo $dti_m; ?>分</div>
+        <div class="meta"><?php echo $station; ?> | <?php echo $dts_s; ?> | <?php echo $dti_m; ?>分</div>
         <div class="title"><?php echo $pg['pg_title']; ?></div>
         <div class="detail"><?php echo $pg['pg_detail']; ?></div>
 
