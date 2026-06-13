@@ -12,6 +12,8 @@ $currenttime = new DateTimeImmutable('now', new DateTimeZone('Asia/Tokyo'));
 $pasttime = $currenttime->modify('-7 days');
 $pastdates = $pasttime->format('Ymd');
 
+$get_pgm_uid = isset($_GET['pgm_uid']) ? $_GET['pgm_uid']:NULL;
+
 try {
     $db_out = new PDO("sqlite:$db_out_path");
     $db_out->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
@@ -227,7 +229,15 @@ function set_interaction(string $interaction, int $pgm_uid) {
         $interaction,
     ]);
 }
-if($is_cold_start) {
+$pg = NULL;
+if($get_pgm_uid) {
+    $pg = load_pgm_id($get_pgm_uid);
+}
+
+if($pg){
+    //nop
+}
+elseif($is_cold_start) {
     $pg = load_pgm_random();
 }
 else {
@@ -241,6 +251,9 @@ else {
     else {
         $pg = load_ml_random(null);
     }
+}
+if(! $pg) {
+    $pg = load_pgm_random();
 }
 
 $message = "";
@@ -262,7 +275,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $status_label = null;
     }
     if ($status_label) {
-        $message = "PID: " . htmlspecialchars($pgm_uid) . " を「" . htmlspecialchars($status_label) . "」として処理しました";
+        $message = "「" . htmlspecialchars($status_label) . "」として処理しました.";
     }
 }
 $dts = DateTime::createFromFormat('YmdHi', $pg['pg_start']);
@@ -296,8 +309,22 @@ $station = $pg['pgm_station_name']=='Unknown' ? $pg['station_name'] : str_replac
         .btn-ignore { background: var(--danger); }
         .btn-skip { background: var(--skip); }
 
-        .toast { position: fixed; bottom: 20px; background: #333; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 0.8rem; opacity: 0; animation: fade 2s forwards; }
-        @keyframes fade { 0% { opacity: 0; } 10% { opacity: 1; } 90% { opacity: 1; } 100% { opacity: 0; } }
+        .toast { position: fixed; bottom: 20px; background: #333; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 0.8rem; opacity: 0; animation: fade 10s forwards; }
+        .toast a {
+            color: #4db8ff; /* 明るい水色 */
+            text-decoration: none;
+            font-weight: bold;
+            margin-left: 10px;
+            padding: 2px 8px;
+            border: 1px solid #4db8ff;
+            border-radius: 10px;
+            transition: background 0.2s, color 0.2s;
+        }
+        .toast a:hover {
+            background: #4db8ff;
+            color: #333;
+        }
+        @keyframes fade { 0% { opacity: 0; } 1% { opacity: 1; } 99% { opacity: 1; } 100% { opacity: 0; } }
         
         .kdb-hint { margin-top: 20px; font-size: 0.8rem; color: #aaa; }
         kbd { background: #eee; border-radius: 3px; padding: 2px 6px; border: 1px solid #ccc; }
@@ -306,7 +333,7 @@ $station = $pg['pgm_station_name']=='Unknown' ? $pg['station_name'] : str_replac
 <body>
 
     <?php if ($message): ?>
-        <div class="toast" id="toast"><?php echo htmlspecialchars($message); ?></div>
+        <div class="toast" id="toast"><?php echo htmlspecialchars($message); ?> <a href="?pgm_uid=<?php echo $pgm_uid; ?>">やりなおす</a></div>
     <?php endif; ?>
 
     <div class="card">
@@ -314,7 +341,7 @@ $station = $pg['pgm_station_name']=='Unknown' ? $pg['station_name'] : str_replac
         <div class="title"><?php echo $pg['pg_title']; ?></div>
         <div class="detail"><?php echo $pg['pg_detail']; ?></div>
 
-        <form id="sortForm" method="POST">
+        <form id="sortForm" action="?" method="POST">
             <input type="hidden" name="pgm_uid" value="<?php echo $pg['pgm_uid']; ?>">
             <input type="hidden" name="status" id="statusInput" value="">
             <div class="actions">
