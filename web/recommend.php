@@ -51,7 +51,17 @@ try {
       tvml_rank AS (
       SELECT
       *,
-      FIRST_VALUE(interaction) OVER(PARTITION BY bsdate,tuner,station_id,pg_start,pg_end,pg_title ORDER BY asof DESC) AS interaction_uq,
+      SUBSTR(-- MAXで選ばれた「最新日付_文字列」から、後ろの文字列部分だけを切り出す
+        MAX(-- 窓関数のMAXにより、非NULLの中で「最新のasof（辞書順で最大）」の結合文字列が選ばれる
+          CASE WHEN interaction IS NOT NULL THEN asof || '_' || interaction END
+        ) OVER (
+          PARTITION BY bsdate, tuner, station_id, pg_start, pg_end, pg_title
+          ORDER BY asof DESC
+          ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW
+        ),
+        -- 切り出し開始位置：asofの文字数 + 2文字目（アンダースコアの次）から
+        LENGTH(asof) + 2
+      ) AS interaction_uq,
       DENSE_RANK() OVER(PARTITION BY bsdate ORDER BY asof DESC) AS asofrk,
       ROW_NUMBER() OVER(PARTITION BY pgm_uid ORDER BY src DESC) AS srcrk
       FROM tvml
