@@ -212,6 +212,9 @@ $filterable_columns = [
                                 <span class="badge-prob" style="font-size: 0.75rem; color: #666;">
                                     Prob: <?= number_format((float)($prog['pred_proba'] ?? 0), 3) ?>
                                 </span>
+                                <span style="font-size: 0.75rem;">
+                                    <a href="./?pgm_uid=<?= $prog['pgm_uid'] ?>">タグ付け</a>
+                                </span>
                             </div>
                         </div>
                         <div class="badge"><?php echo htmlspecialchars($prog['bsdate']); ?></div>
