@@ -17,7 +17,7 @@ $where_clauses = [];
 $params = [];
 
 $where_clauses[] = "pred_label IS NOT NULL";
-$where_clauses[] = "bsdate >= ?";
+$where_clauses[] = "AND bsdate >= ?";
 $params[] = $currentdates;
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['filters'])) {
