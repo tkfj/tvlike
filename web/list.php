@@ -16,6 +16,7 @@ $currentdates = $currenttime->format('Ymd');
 $where_clauses = [];
 $params = [];
 
+$where_clauses[] = "pred_label IS NOT NULL";
 $where_clauses[] = "bsdate >= ?";
 $params[] = $currentdates;
 
