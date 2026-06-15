@@ -51,6 +51,7 @@ try {
       tvml_rank AS (
       SELECT
       *,
+      FIRST_VALUE(interaction) OVER(PARTITION BY bsdate,tuner,station_id,pg_start,pg_end,pg_title ORDER BY asof DESC) AS interaction_uq,
       DENSE_RANK() OVER(PARTITION BY bsdate ORDER BY asof DESC) AS asofrk,
       ROW_NUMBER() OVER(PARTITION BY pgm_uid ORDER BY src DESC) AS srcrk
       FROM tvml
@@ -82,7 +83,7 @@ $filterable_columns = [
     'genre' => 'ジャンル',
     'bsdate' => '放送日',
     'pg_start' => '開始時間',
-    'interaction' => '興味有無(教師)',
+    'interaction_uq' => '興味有無(教師)',
     'pred_label' => '興味有無(AI)'
 ];
 ?>
@@ -210,8 +211,8 @@ $filterable_columns = [
                                         return 'bg-neutral';
                                     };
                                 ?>
-                                <span class="badge-status <?= $get_badge_class($prog['interaction'] ?? '') ?>">
-                                    Int: <?= htmlspecialchars($prog['interaction'] ?? '-') ?>
+                                <span class="badge-status <?= $get_badge_class($prog['interaction_uq'] ?? '') ?>">
+                                    Int: <?= htmlspecialchars($prog['interaction_uq'] ?? '-') ?>
                                 </span>
                                 <span class="badge-status <?= $get_badge_class($prog['pred_label'] ?? '') ?>">
                                     Pred: <?= htmlspecialchars($prog['pred_label'] ?? '-') ?>
