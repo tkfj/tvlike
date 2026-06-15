@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['filters'])) {
     foreach ($filters as $index => $f) {
         if (empty($f['column']) || empty($f['value'])) continue;
 
-        $logic = ($index === 0) ? '' : $f['logic']; // 最初の条件は論理演算子不要
+        $logic = empty($where_clauses) ? '' : $f['logic']; // 最初の条件は論理演算子不要
         $column = preg_replace('/[^a-z0-9_]/', '', $f['column']); // SQLインジェクション対策（簡易）
         $op = $arr_op = $f['op'];
         $val = $f['value'];
@@ -49,14 +49,18 @@ $where_sql = !empty($where_clauses) ? "WHERE " . implode(" ", $where_clauses) : 
 try {
     $query = "WITH
       tvml_rank AS (
-      SELECT *, DENSE_RANK() OVER(PARTITION BY bsdate ORDER BY asof DESC) AS rk 
+      SELECT
+      *,
+      DENSE_RANK() OVER(PARTITION BY bsdate ORDER BY asof DESC) AS asofrk,
+      ROW_NUMBER() OVER(PARTITION BY pgm_uid ORDER BY src DESC) AS srcrk
       FROM tvml
-      WHERE src=0
+      WHERE src in (0,1)
     )
     , tvml_latest AS (
       SELECT *
       FROM tvml_rank
-      WHERE rk=1
+      WHERE asofrk=1
+      AND srcrk=1
     )
     SELECT * 
     FROM tvml_latest
@@ -217,6 +221,12 @@ $filterable_columns = [
                                 </span>
                                 <span style="font-size: 0.75rem;">
                                     <a href="./?pgm_uid=<?= $prog['pgm_uid'] ?>">タグ付け</a>
+                                </span>
+                                <span style="font-size: 0.75rem;">
+                                    Uid: <?= $prog['pgm_uid'] ?>
+                                </span>
+                                <span style="font-size: 0.75rem;">
+                                    AsOf: <?= $prog['asof'] ?>
                                 </span>
                             </div>
                         </div>
