@@ -59,19 +59,20 @@ function load_ml_random(?string $interaction) {
         die("DB(ml)接続エラー: " . $e->getMessage());
     }
     if(is_null($interaction)) {
-        $with_ = ", tvml1 AS (
-            SELECT * FROM latest_tvml
-            WHERE src = 0
-            AND pred_label IS NOT NULL
+        $with_ = "tvml1 AS (
+            SELECT * FROM tvml
+            WHERE is_target == 1
+            AND bsdate >= ?
             ORDER BY RANDOM() DESC
             LIMIT 1
         )";
         $params_=[$pastdates];
     }
     else {
-        $with_ = ", tvml1 AS (
-            SELECT * FROM latest_tvml
-            WHERE src = 0
+        $with_ = "tvml1 AS (
+            SELECT * FROM tvml
+            WHERE is_target == 1
+            AND bsdate >= ?
             AND pred_label=?
             AND interaction IS NULL
         )";
@@ -79,14 +80,7 @@ function load_ml_random(?string $interaction) {
     }
     try {
         $stmt = $db_ml->prepare("
-            with latest_tvml as (
-                select
-                *,
-                dense_rank() over (order by asof desc) as rk
-                from tvml
-                where src=0
-                and bsdate>=?
-            )
+            WITH
             {$with_}
             SELECT *
             FROM tvml1
