@@ -191,6 +191,11 @@ $filterable_columns = [
             <div class="list-container">
                 <?php foreach ($programs as $prog): ?>
                     <?php
+                        $dts = DateTime::createFromFormat('YmdHi', $prog['pg_start']);
+                        $dts_s = $dts->format('Y-m-d H:i');
+                        $dte = DateTime::createFromFormat('YmdHi', $prog['pg_end']);
+                        $dti = $dte->diff($dts);
+                        $dti_m = ($dti->days * 24 * 60) + ($dti->h * 60) + $dti->i;
                         $genre_cd = $prog['genre'] ?? '_';
                         $genre_lbl = $genre_map[$genre_cd] ?? NULL;
                     ?>
@@ -201,6 +206,7 @@ $filterable_columns = [
                                 <?php echo htmlspecialchars($prog['pgm_station_name'] ?? ''); ?> | 
                                 <?php echo htmlspecialchars(substr($prog['pg_start'], 0, 4)."-".substr($prog['pg_start'], 4, 2)."-".substr($prog['pg_start'], 6, 2)); ?>
                                 <?php echo htmlspecialchars(substr($prog['pg_start'], 8, 2).":".substr($prog['pg_start'], 10, 2)); ?> | 
+                                <?php echo $dti_m; ?>分 | 
                                 <?php echo htmlspecialchars($genre_lbl ?? ''); ?>
                             </span>
                             
