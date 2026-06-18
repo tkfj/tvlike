@@ -68,7 +68,7 @@ $filterable_columns = [
     'genre' => 'ジャンル',
     'bsdate' => '放送日',
     'pg_start' => '開始時間',
-    'interaction_uq' => '興味有無(教師)',
+    'interaction' => '興味有無(教師)',
     'pred_label' => '興味有無(AI)'
 ];
 ?>

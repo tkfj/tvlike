@@ -66,7 +66,7 @@ $filterable_columns = [
     'pg_title' => '番組名',
     'pgm_station_name' => '放送局',
     'bsdate' => '放送日',
-    'interaction_uq' => '興味有無(教師)'
+    'interaction' => '興味有無(教師)'
 ];
 ?>
 <!DOCTYPE html>
