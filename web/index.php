@@ -91,8 +91,8 @@ function load_ml_random(?string $interaction) {
             WHERE is_target = 1
             AND is_preinstalled = 0
             AND bsdate >= ?
-            AND pred_label=?
-            AND interaction IS NULL
+            AND pred_label = ?
+            AND (interaction IS NULL OR interaction = '_')
         )";
         $params_=[$pastdates, $interaction];
     }
