@@ -1,5 +1,20 @@
 <?php
 $db_in_path = __DIR__ . '/db/tvml.db';
+$genre_map = [
+    '0'=> 'ニュース/報道',
+    '1'=> 'スポーツ',
+    '2'=> '情報/ワイドショー',
+    '3'=> 'ドラマ',
+    '4'=> '音楽',
+    '5'=> 'バラエティ',
+    '6'=> '映画',
+    '7'=> 'アニメ/特撮',
+    '8'=> 'ドキュメンタリー/教養',
+    '9'=> '劇場/公演',
+    'A'=> '趣味/教育',
+    'B'=> '福祉',
+    'F'=> 'その他',
+];
 
 try {
     $db_in = new PDO("sqlite:$db_in_path");
@@ -16,7 +31,8 @@ $currentdates = $currenttime->format('Ymd');
 $where_clauses = [];
 $params = [];
 
-$where_clauses[] = "pred_label IS NOT NULL";
+$where_clauses[] = "is_target = 1";
+$where_clauses[] = "AND is_preinstalled = 0";
 $where_clauses[] = "AND bsdate >= ?";
 $params[] = $currentdates;
 
@@ -176,6 +192,10 @@ $filterable_columns = [
         <?php else: ?>
             <div class="list-container">
                 <?php foreach ($programs as $prog): ?>
+                    <?php
+                        $genre_cd = $prog['genre'] ?? '_';
+                        $genre_lbl = $genre_map[$genre_cd] ?? NULL;
+                    ?>
                     <div class="program-item">
                         <div class="prog-info">
                             <span class="prog-title"><?php echo htmlspecialchars($prog['pg_title']); ?></span>
@@ -183,7 +203,7 @@ $filterable_columns = [
                                 <?php echo htmlspecialchars($prog['pgm_station_name'] ?? ''); ?> | 
                                 <?php echo htmlspecialchars(substr($prog['pg_start'], 0, 4)."-".substr($prog['pg_start'], 4, 2)."-".substr($prog['pg_start'], 6, 2)); ?>
                                 <?php echo htmlspecialchars(substr($prog['pg_start'], 8, 2).":".substr($prog['pg_start'], 10, 2)); ?> | 
-                                <?php echo htmlspecialchars($prog['genre'] ?? ''); ?>
+                                <?php echo htmlspecialchars($genre_lbl ?? ''); ?>
                             </span>
                             
                             <!-- 新規追加要素 -->

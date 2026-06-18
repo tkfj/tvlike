@@ -8,6 +8,22 @@ $db_path_ml = __DIR__ . '/db/tvml.db';
 # 常にプログラムから候補を返す
 $is_cold_start = FALSE;
 
+$genre_map = [
+    '0'=> 'ニュース/報道',
+    '1'=> 'スポーツ',
+    '2'=> '情報/ワイドショー',
+    '3'=> 'ドラマ',
+    '4'=> '音楽',
+    '5'=> 'バラエティ',
+    '6'=> '映画',
+    '7'=> 'アニメ/特撮',
+    '8'=> 'ドキュメンタリー/教養',
+    '9'=> '劇場/公演',
+    'A'=> '趣味/教育',
+    'B'=> '福祉',
+    'F'=> 'その他',
+];
+
 $currenttime = new DateTimeImmutable('now', new DateTimeZone('Asia/Tokyo'));
 $pasttime = $currenttime->modify('-7 days');
 $pastdates = $pasttime->format('Ymd');
@@ -61,7 +77,8 @@ function load_ml_random(?string $interaction) {
     if(is_null($interaction)) {
         $with_ = "tvml1 AS (
             SELECT * FROM tvml
-            WHERE is_target == 1
+            WHERE is_target = 1
+            AND is_preinstalled = 0
             AND bsdate >= ?
             ORDER BY RANDOM() DESC
             LIMIT 1
@@ -71,7 +88,8 @@ function load_ml_random(?string $interaction) {
     else {
         $with_ = "tvml1 AS (
             SELECT * FROM tvml
-            WHERE is_target == 1
+            WHERE is_target = 1
+            AND is_preinstalled = 0
             AND bsdate >= ?
             AND pred_label=?
             AND interaction IS NULL
@@ -278,6 +296,9 @@ $dte = DateTime::createFromFormat('YmdHi', $pg['pg_end']);
 $dti = $dte->diff($dts);
 $dti_m = ($dti->days * 24 * 60) + ($dti->h * 60) + $dti->i;
 $station = $pg['pgm_station_name']=='Unknown' ? $pg['station_name'] : str_replace("_", " ", $pg['pgm_station_name']);
+
+$genre_cd = $pg['genre'] ?? '_';
+$genre_lbl = $genre_map[$genre_cd] ?? NULL;
 ?>
 <!DOCTYPE html>
 <html lang="ja">
@@ -331,7 +352,7 @@ $station = $pg['pgm_station_name']=='Unknown' ? $pg['station_name'] : str_replac
     <?php endif; ?>
 
     <div class="card">
-        <div class="meta"><?php echo $station; ?> | <?php echo $dts_s; ?> | <?php echo $dti_m; ?>分</div>
+        <div class="meta"><?php echo htmlspecialchars($station); ?> | <?php echo $dts_s; ?> | <?php echo $dti_m; ?>分 | <?php echo htmlspecialchars($genre_lbl ?? ''); ?></div>
         <div class="title"><?php echo $pg['pg_title']; ?></div>
         <div class="detail"><?php echo $pg['pg_detail']; ?></div>
 
